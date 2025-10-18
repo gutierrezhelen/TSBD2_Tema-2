@@ -1,0 +1,113 @@
+---
+import { getStudents, createStudent, updateStudent, deleteStudent } from '../services/studentService.js';
+const { setView } = Astro.props;
+---
+
+<div class="container">
+  <h1>👩‍🎓 Estudiantes</h1>
+
+  <div class="acciones">
+    <input type="text" id="searchStudent" placeholder="Buscar estudiante..." />
+    <button id="addStudent">➕ Agregar Estudiante</button>
+    <button id="homeBtn">🏠 Volver al inicio</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Nombre</th><th>Apellido</th><th>Email</th><th>ID Curso</th><th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="studentBody"></tbody>
+  </table>
+
+  <!-- Modal -->
+  <div id="modalStudent" class="modal" style="display:none;">
+    <div class="modal-content">
+      <span id="closeStudent">&times;</span>
+      <h2 id="modalTitleStudent"></h2>
+      <input id="name" placeholder="Nombre" />
+      <input id="lastName" placeholder="Apellido" />
+      <input id="email" placeholder="Email" />
+      <input id="courseId" placeholder="ID Curso" />
+      <button id="saveStudent">💾 Guardar</button>
+    </div>
+  </div>
+
+  <script type="module">
+    let students = [];
+    let editing = null;
+
+    const body = document.getElementById("studentBody");
+    const modal = document.getElementById("modalStudent");
+
+    async function loadStudents() {
+      students = await getStudents();
+      render();
+    }
+
+    function render() {
+      body.innerHTML = "";
+      students.forEach(s => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${s.id}</td>
+          <td>${s.name}</td>
+          <td>${s.lastName}</td>
+          <td>${s.email}</td>
+          <td>${s.courseId}</td>
+          <td>
+            <button data-id="${s.id}" class="editBtn">✏ Editar</button>
+            <button data-id="${s.id}" class="deleteBtn">🗑 Eliminar</button>
+          </td>`;
+        body.appendChild(tr);
+      });
+    }
+
+    document.getElementById("addStudent").onclick = () => {
+      editing = null;
+      modalTitleStudent.textContent = "Agregar Estudiante";
+      modal.style.display = "flex";
+      document.querySelectorAll("#modalStudent input").forEach(i => i.value = "");
+    };
+
+    document.getElementById("closeStudent").onclick = () => modal.style.display = "none";
+
+    document.getElementById("saveStudent").onclick = async () => {
+      const newS = {
+        name: document.getElementById("name").value,
+        lastName: document.getElementById("lastName").value,
+        email: document.getElementById("email").value,
+        courseId: document.getElementById("courseId").value
+      };
+      if (editing) await updateStudent(editing, newS);
+      else await createStudent(newS);
+      modal.style.display = "none";
+      await loadStudents();
+    };
+
+    body.addEventListener("click", async e => {
+      if (e.target.classList.contains("editBtn")) {
+        const id = e.target.dataset.id;
+        const s = students.find(st => st.id == id);
+        editing = id;
+        modal.style.display = "flex";
+        modalTitleStudent.textContent = "Editar Estudiante";
+        document.getElementById("name").value = s.name;
+        document.getElementById("lastName").value = s.lastName;
+        document.getElementById("email").value = s.email;
+        document.getElementById("courseId").value = s.courseId;
+      }
+      if (e.target.classList.contains("deleteBtn")) {
+        await deleteStudent(e.target.dataset.id);
+        await loadStudents();
+      }
+    });
+
+    document.getElementById("homeBtn").onclick = () => {
+      window.dispatchEvent(new CustomEvent("setView", { detail: "home" }));
+    };
+
+    loadStudents();
+  </script>
+</div>

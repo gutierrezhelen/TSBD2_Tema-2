@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{titulo}}</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+<div class="container">
+  <h1>{{titulo}}</h1>
+  <button class="volver" onclick="window.location.href='/'">Inicio</button>
+  <div class="acciones">
+    <button onclick="insertar()">➕ Agregar Estudiante</button>
+    <button onclick="buscar()">🔍 Buscar</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Curso</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-estudiantes"></tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span id="cerrar">&times;</span>
+    <h2 id="modal-titulo"></h2>
+    <form id="formulario">
+      <input type="hidden" id="id">
+      <label>Nombre:</label><br>
+      <input type="text" id="nombre" required><br><br>
+      <label>Curso:</label><br>
+      <input type="text" id="curso"><br><br>
+      <button type="submit">Guardar</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const modal = document.getElementById('modal');
+const cerrar = document.getElementById('cerrar');
+const formulario = document.getElementById('formulario');
+const idInput = document.getElementById('id');
+const nombreInput = document.getElementById('nombre');
+const cursoInput = document.getElementById('curso');
+
+cerrar.onclick = () => modal.style.display = 'none';
+
+// Cargar estudiantes
+async function cargarEstudiantes() {
+  const res = await fetch('/api/student/all');
+  const data = await res.json();
+  const tabla = document.getElementById('tabla-estudiantes');
+  tabla.innerHTML = data.map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${s.name}</td>
+      <td>${s.course?.name ?? 'N/A'}</td>
+      <td>
+        <button onclick="editar(${s.id})">✏ Editar</button>
+        <button onclick="eliminar(${s.id})">🗑 Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+cargarEstudiantes();
+
+// Abrir modal para agregar
+function insertar() {
+  idInput.value = '';
+  nombreInput.value = '';
+  cursoInput.value = '';
+  document.getElementById('modal-titulo').innerText = 'Agregar Estudiante';
+  modal.style.display = 'block';
+}
+
+// Editar estudiante
+async function editar(id) {
+  const res = await fetch(`/api/student/search/${id}`);
+  const s = await res.json();
+  idInput.value = s.id;
+  nombreInput.value = s.name;
+  cursoInput.value = s.course?.name ?? '';
+  document.getElementById('modal-titulo').innerText = 'Editar Estudiante';
+  modal.style.display = 'block';
+}
+
+// Eliminar estudiante
+async function eliminar(id) {
+  if (confirm('¿Seguro que desea eliminar este estudiante?')) {
+    await fetch(`/api/student/delete/${id}`, { method: 'DELETE' });
+    cargarEstudiantes();
+  }
+}
+
+// Guardar (crear o actualizar)
+formulario.onsubmit = async (e) => {
+  e.preventDefault();
+  const data = { name: nombreInput.value, course: { name: cursoInput.value } };
+
+  if(idInput.value) {
+    await fetch(`/api/student/update/${idInput.value}`, {
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+  } else {
+    await fetch('/api/student/create', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+  }
+
+  modal.style.display='none';
+  cargarEstudiantes();
+}
+
+// Buscar estudiante por nombre o ID
+async function buscar() {
+  const busqueda = prompt('Ingrese nombre o ID:');
+  if(!busqueda) return cargarEstudiantes();
+
+  const res = await fetch('/api/student/all');
+  const data = await res.json();
+  const filtrado = data.filter(s => s.name.includes(busqueda) || s.id == busqueda);
+
+  const tabla = document.getElementById('tabla-estudiantes');
+  tabla.innerHTML = filtrado.map(s => `
+    <tr>
+      <td>${s.id}</td>
+      <td>${s.name}</td>
+      <td>${s.course?.name ?? 'N/A'}</td>
+      <td>
+        <button onclick="editar(${s.id})">✏ Editar</button>
+        <button onclick="eliminar(${s.id})">🗑 Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+</script>
+</body>
+</html>

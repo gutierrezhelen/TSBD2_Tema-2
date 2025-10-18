@@ -1,0 +1,22 @@
+---
+const { setView } = Astro.props;
+---
+
+<div class="container home" client:load>
+  <h1>Bienvenidos al Microservicio</h1>
+  <p>Estás utilizando <strong>Astro</strong> para consumir microservicios de cursos y estudiantes.</p>
+
+  <div class="botones">
+    <button id="btnStudents">👩‍🎓 Estudiantes</button>
+    <button id="btnCourses">📚 Cursos</button>
+  </div>
+
+  <script>
+    document.getElementById("btnStudents").addEventListener("click", () => {
+      window.dispatchEvent(new CustomEvent("setView", { detail: "students" }));
+    });
+    document.getElementById("btnCourses").addEventListener("click", () => {
+      window.dispatchEvent(new CustomEvent("setView", { detail: "courses" }));
+    });
+  </script>
+</div>

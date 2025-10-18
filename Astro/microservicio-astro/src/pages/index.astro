@@ -1,0 +1,45 @@
+---
+import Home from '../components/Home.astro';
+import CourseList from '../components/CourseList.astro';
+import StudentList from '../components/StudentList.astro';
+
+let view = 'home';
+
+// Esta función se ejecutará en el cliente
+function setView(newView) {
+  view = newView;
+}
+---
+<head>
+  <meta charset="UTF-8" />
+  <title>Microservicio Astro</title>
+  <link rel="stylesheet" href="/styles/estilos.css" />
+</head>
+
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Microservicio Astro</title>
+    <link rel="stylesheet" href="/styles/estilos.css" />
+  </head>
+  <body>
+    {view === 'home' && <Home client:load setView={setView} />}
+    {view === 'courses' && <CourseList client:load setView={setView} />}
+    {view === 'students' && <StudentList client:load setView={setView} />}
+
+    <script>
+      // Escucha los eventos disparados desde los botones de los componentes
+      window.addEventListener('setView', e => {
+        const newView = e.detail;
+        document.body.innerHTML = ''; // Limpia el body
+        if (newView === 'home') {
+          window.location.reload(); // Regresa al inicio
+        } else if (newView === 'courses') {
+          window.location.href = '/courses';
+        } else if (newView === 'students') {
+          window.location.href = '/students';
+        }
+      });
+    </script>
+  </body>
+</html>

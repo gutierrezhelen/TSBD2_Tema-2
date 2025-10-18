@@ -1,0 +1,11 @@
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th {
+  background-color: #f28b82;
+  color: white;
+}
+td, th {
+  text-align: center;
+}

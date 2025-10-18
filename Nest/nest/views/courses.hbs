@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>{{titulo}}</title>
+  <link rel="stylesheet" href="/css/estilos.css">
+</head>
+<body>
+<div class="container">
+  <h1>{{titulo}}</h1>
+  <button class="volver" onclick="window.location.href='/'">🏠 Inicio</button>
+  <div class="acciones">
+    <button onclick="insertar()">➕ Agregar Curso</button>
+    <button onclick="buscar()">🔍 Buscar</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre del Curso</th>
+        <th>Profesor</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tabla-cursos"></tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <span id="cerrar">&times;</span>
+    <h2 id="modal-titulo"></h2>
+    <form id="formulario">
+      <input type="hidden" id="id">
+
+      <label>Nombre del Curso:</label><br>
+      <input type="text" id="nombre" required><br><br>
+
+      <label>Profesor:</label><br>
+      <input type="text" id="profesor"><br><br>
+
+      <button type="submit">Guardar</button>
+    </form>
+  </div>
+</div>
+
+<script>
+const modal = document.getElementById('modal');
+const cerrar = document.getElementById('cerrar');
+const formulario = document.getElementById('formulario');
+const idInput = document.getElementById('id');
+const nombreInput = document.getElementById('nombre');
+const profesorInput = document.getElementById('profesor');
+
+// Cerrar modal
+cerrar.onclick = () => modal.style.display = 'none';
+
+// ✅ URL base del backend NestJS
+const baseUrl = 'http://localhost:3000/api/course';
+
+// ===============================
+// CARGAR TODOS LOS CURSOS
+// ===============================
+async function cargarCursos() {
+  const res = await fetch(`${baseUrl}/all`);
+  const data = await res.json();
+
+  const tabla = document.getElementById('tabla-cursos');
+  tabla.innerHTML = data.map(c => `
+    <tr>
+      <td>${c.id}</td>
+      <td>${c.name}</td>
+      <td>${c.teacher || 'Sin asignar'}</td>
+      <td>
+        <button onclick="editar(${c.id})">✏ Editar</button>
+        <button onclick="eliminar(${c.id})">🗑 Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+cargarCursos();
+
+// ===============================
+// INSERTAR NUEVO CURSO
+// ===============================
+function insertar() {
+  idInput.value = '';
+  nombreInput.value = '';
+  profesorInput.value = '';
+  document.getElementById('modal-titulo').innerText = 'Agregar Curso';
+  modal.style.display = 'block';
+}
+
+// ===============================
+// EDITAR CURSO
+// ===============================
+async function editar(id) {
+  const res = await fetch(`${baseUrl}/${id}`);
+  const c = await res.json();
+
+  idInput.value = c.id;
+  nombreInput.value = c.name;
+  profesorInput.value = c.teacher || '';
+  document.getElementById('modal-titulo').innerText = 'Editar Curso';
+  modal.style.display = 'block';
+}
+
+// ===============================
+// ELIMINAR CURSO
+// ===============================
+async function eliminar(id) {
+  if (confirm('¿Seguro que desea eliminar este curso?')) {
+    await fetch(`${baseUrl}/${id}`, { method: 'DELETE' });
+    cargarCursos();
+  }
+}
+
+// ===============================
+// GUARDAR (crear o actualizar)
+// ===============================
+formulario.onsubmit = async (e) => {
+  e.preventDefault();
+  const data = { name: nombreInput.value, teacher: profesorInput.value };
+
+  if (idInput.value) {
+    await fetch(`${baseUrl}/${idInput.value}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  } else {
+    await fetch(`${baseUrl}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+  }
+
+  modal.style.display = 'none';
+  cargarCursos();
+};
+
+// ===============================
+// BUSCAR CURSO
+// ===============================
+async function buscar() {
+  const busqueda = prompt('Ingrese nombre o ID:');
+  if (!busqueda) return cargarCursos();
+
+  const res = await fetch(`${baseUrl}/all`);
+  const data = await res.json();
+  const filtrado = data.filter(c => 
+    c.name.toLowerCase().includes(busqueda.toLowerCase()) || c.id == busqueda
+  );
+
+  const tabla = document.getElementById('tabla-cursos');
+  tabla.innerHTML = filtrado.map(c => `
+    <tr>
+      <td>${c.id}</td>
+      <td>${c.name}</td>
+      <td>${c.teacher || 'Sin asignar'}</td>
+      <td>
+        <button onclick="editar(${c.id})">✏ Editar</button>
+        <button onclick="eliminar(${c.id})">🗑 Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+</script>
+</body>
+</html>

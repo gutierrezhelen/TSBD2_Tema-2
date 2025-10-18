@@ -1,0 +1,92 @@
+body {
+  font-family: Arial, sans-serif;
+  background-color: #ffe5e5; /* rojo pastel */
+  color: #4a0000;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1rem;
+  background-color: #fff0f0;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.acciones, .botones {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  justify-content: center;
+}
+
+input[type="text"] {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ff9999;
+  flex: 1;
+}
+
+button {
+  padding: 0.5rem 1rem;
+  background-color: #ff7f7f;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+}
+
+button:hover {
+  background-color: #ff4c4c;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 0.5rem;
+  border: 1px solid #ffcccc;
+  text-align: center;
+}
+
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 200, 200, 0.6);
+  z-index: 100;
+}
+
+.modal-content {
+  background: #fff0f0;
+  padding: 2rem;
+  border-radius: 10px;
+  min-width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.modal-content input {
+  padding: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #ff9999;
+}
+
+.modal-content span {
+  align-self: flex-end;
+  cursor: pointer;
+  font-weight: bold;
+}
